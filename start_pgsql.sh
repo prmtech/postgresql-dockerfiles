@@ -41,7 +41,7 @@ EOF
 fi
 
 # symlink initialized flag
-ln -sf "$INITIALIZED_FILE" /opt/postgresql/initialized
+ln -sf "$POSTGRESQL_VERSION/initialized" /opt/postgresql/initialized
 
 # run postgresql database
 exec su postgres -c "$PGPATH/postgres -D $PGDATA -c 'listen_addresses=*'"

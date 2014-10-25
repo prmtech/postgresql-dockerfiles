@@ -1,18 +1,18 @@
 FROM	ubuntu:trusty
-MAINTAINER	kload "kload@kload.fr"
+MAINTAINER	"Kamil Trzcinski <ayufan@ayufan.eu>"
 
-RUN LC_ALL=C DEBIAN_FRONTEND=noninteractive \
-	echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
-	chmod +x /usr/sbin/policy-rc.d && \
-	apt-get update && \
-	apt-get install -y -q postgresql-9.3 postgresql-contrib-9.3 && \
-	rm -rf /var/lib/apt/lists/* && \
-	apt-get clean && \
-	rm /usr/sbin/policy-rc.d && \
-	echo 'host all all 0.0.0.0/0 md5' >> /etc/postgresql/9.3/main/pg_hba.conf && \
-	sed -i -e"s/var\/lib/opt/g" /etc/postgresql/9.3/main/postgresql.conf
+RUN # This image is based on: https://github.com/Kloadut/dokku-pg-dockerfiles
 
-ADD	. /usr/bin
-RUN	chmod +x /usr/bin/start_pgsql.sh
+ENV POSTGRESQL_VERSION 9.3
 
+ADD install_pgsql.sh /usr/bin/
+RUN /usr/bin/install_pgsql.sh
+
+ADD start_pgsql.sh /usr/bin/
+ADD configs/pg_hba.conf /etc/postgresql/$POSTGRESQL_VERSION/main/
+ADD configs/postgresql.conf /etc/postgresql/$POSTGRESQL_VERSION/main/
+
+VOLUME /opt/postgresql
 EXPOSE 5432
+
+CMD ["/usr/bin/start_pgsql.sh"]

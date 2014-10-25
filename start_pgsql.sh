@@ -2,20 +2,46 @@
 
 set -e
 
-if [[ ! -f /opt/postgresql_password ]]; then
-	echo "No postgresql password defined"
-	exit 1
+if [[ -z "$POSTGRESQL_VERSION" ]]; then
+    echo "No postgresql version defined"
+    exit 1
 fi
-if [[ ! -f /opt/postgresql/initialized ]]; then
-    mkdir -p /opt/postgresql
-    cp -a /var/lib/postgresql/* /opt/postgresql/
-    chown -R postgres:postgres /opt/postgresql
-    DB_PASSWORD="$(cat "/opt/postgresql_password")"
-    su postgres -c '/usr/lib/postgresql/9.3/bin/postgres --single  -D  /opt/postgresql/9.3/main  -c config_file=/etc/postgresql/9.3/main/postgresql.conf' <<EOF
+
+PGPATH="/usr/lib/postgresql/$POSTGRESQL_VERSION/bin"
+PGDATA="/opt/postgresql/$POSTGRESQL_VERSION/main"
+
+INITIALIZED_FILE="/opt/postgresql/$POSTGRESQL_VERSION/initialized"
+
+# read admin password
+if [[ -z "$DB_PASSWORD" ]]; then
+    if [[ ! -f /opt/postgresql_password ]]; then
+        echo "No postgresql password defined"
+        exit 1
+    else
+        DB_PASSWORD="$(cat "/opt/postgresql_password")"
+    fi
+fi
+
+# upgrade initialized flag
+if [[ -f /opt/postgresql/initialized ]]; then
+    touch "$INITIALIZED_FILE"
+    rm -f /opt/postgresql/initialized
+fi
+
+# initialize database
+if [[ ! -f "$INITIALIZED_FILE" ]]; then
+    mkdir -p "/opt/postgresql/$POSTGRESQL_VERSION/main"
+    chown -R postgres:postgres "/opt/postgresql/$POSTGRESQL_VERSION/main"
+    su postgres -c "$PGPATH/initdb -D $PGDATA" 
+    su postgres -c "$PGPATH/postgres --single -D $PGDATA" <<EOF
 CREATE USER root WITH SUPERUSER PASSWORD '$DB_PASSWORD';
 CREATE DATABASE root OWNER root;
 EOF
-    touch /opt/postgresql/initialized
+    touch "$INITIALIZED_FILE"
 fi
 
-exec su postgres -c '/usr/lib/postgresql/9.3/bin/postgres -D /opt/postgresql/9.3/main -c config_file=/etc/postgresql/9.3/main/postgresql.conf -c "listen_addresses=*"'
+# symlink initialized flag
+ln -sf "$INITIALIZED_FILE" /opt/postgresql/initialized
+
+# run postgresql database
+exec su postgres -c "$PGPATH/postgres -D $PGDATA -c 'listen_addresses=*'"

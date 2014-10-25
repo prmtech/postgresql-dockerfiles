@@ -1,9 +1,9 @@
-FROM	ubuntu:trusty
-MAINTAINER	"Kamil Trzcinski <ayufan@ayufan.eu>"
+FROM ubuntu:trusty
+MAINTAINER "Kamil Trzcinski <ayufan@ayufan.eu>"
 
 RUN # This image is based on: https://github.com/Kloadut/dokku-pg-dockerfiles
 
-ENV POSTGRESQL_VERSION 9.3
+ENV POSTGRESQL_VERSION 9.4
 
 ADD install_pgsql.sh /usr/bin/
 RUN /usr/bin/install_pgsql.sh

@@ -11,11 +11,11 @@ if [[ ! -f /opt/postgresql/initialized ]]; then
     cp -a /var/lib/postgresql/* /opt/postgresql/
     chown -R postgres:postgres /opt/postgresql
     DB_PASSWORD="$(cat "/opt/postgresql_password")"
-    su postgres -c '/usr/lib/postgresql/9.1/bin/postgres --single  -D /opt/postgresql/9.1/main  -c config_file=/etc/postgresql/9.1/main/postgresql.conf' <<EOF
+    su postgres -c '/usr/lib/postgresql/9.4/bin/postgres --single  -D /opt/postgresql/9.4/main  -c config_file=/etc/postgresql/9.4/main/postgresql.conf' <<EOF
 CREATE USER root WITH SUPERUSER PASSWORD '$DB_PASSWORD';
 CREATE DATABASE root OWNER root;
 EOF
     touch /opt/postgresql/initialized
 fi
 
-exec su postgres -c '/usr/lib/postgresql/9.1/bin/postgres -D /opt/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf -c "listen_addresses=*"'
+exec su postgres -c '/usr/lib/postgresql/9.4/bin/postgres -D /opt/postgresql/9.4/main -c config_file=/etc/postgresql/9.4/main/postgresql.conf -c "listen_addresses=*"'
